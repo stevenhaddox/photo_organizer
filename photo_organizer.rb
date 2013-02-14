@@ -5,6 +5,8 @@ require 'rubygems'
 require 'mini_exiftool'
 require 'awesome_print'
 
+require 'pry'
+
 options = {}
 
 optparse = OptionParser.new do|opts|
@@ -35,6 +37,8 @@ ap 'Welcome to Photo Organizer'
 def skipped_format? filename
   # exclude '.' and '..'
   skipped_format = !(filename =~ /^\.+$/).nil?
+  # exclude '.DS_Store'
+  skipped_format ||= !(filename =~ /^.DS_Store$/).nil?
   # exclude '*.mov' and '*.mp4' videos
   skipped_format ||= !(filename =~ /\.m(ov|p4)/).nil?
   skipped_format
@@ -47,8 +51,10 @@ Dir.open(Dir.pwd).each do |file_name|
   ap "File not found!" unless File.exist?(File.absolute_path(file_name))
   photo = MiniExiftool.new file_name
 
-  ap photo.date_time_original
-  ap photo
+  date = photo.date_time_original
+  date ||= photo.modify_date
+  date ||= photo.file_modify_date
+  ap Date.parse(date.to_s).to_s if date
 end
 
 exit
